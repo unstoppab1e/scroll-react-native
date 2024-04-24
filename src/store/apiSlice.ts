@@ -1,3 +1,4 @@
+import { current } from '@reduxjs/toolkit';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 type IPost = {
@@ -22,6 +23,12 @@ export const apiSlice = createApi({
     getPosts: builder.query<IPost[], IPostQuery>({
       query: ({ start = 0, limit = 10 }) =>
         `posts?_start=${start}&_limit=${limit}`,
+      serializeQueryArgs: ({ endpointName }) => endpointName,
+      merge: (currentCache, newItems, { arg: { start } }) => {
+        if (start === 0) currentCache.length = 0;
+        currentCache.push(...newItems);
+      },
+      forceRefetch: ({ currentArg, previousArg }) => currentArg !== previousArg,
       providesTags: (result) =>
         result
           ? [

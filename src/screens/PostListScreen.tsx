@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { useGetPostsQuery } from '../store/apiSlice';
 import React, { useState } from 'react';
 
@@ -10,11 +10,17 @@ export const PostListScreen = () => {
     isLoading,
     isFetching,
     refetch,
-  } = useGetPostsQuery({ start: 0, limit: 10 });
+  } = useGetPostsQuery({ limit: 10, start });
 
   const handleRefresh = () => {
     setStart(0);
     refetch();
+  };
+
+  const handleEndReached = () => {
+    if (posts?.length === start + 10) {
+      setStart((prev) => prev + 10);
+    }
   };
 
   if (isLoading) {
@@ -31,6 +37,7 @@ export const PostListScreen = () => {
       keyExtractor={(item) => item.id.toString()}
       refreshing={isFetching}
       onRefresh={handleRefresh}
+      onEndReached={handleEndReached}
       contentContainerStyle={{
         paddingHorizontal: 16,
         flexGrow: 1,
@@ -51,6 +58,9 @@ export const PostListScreen = () => {
             {item.body}
           </Text>
         </View>
+      )}
+      ListFooterComponent={() => (
+        <View>{isFetching && <ActivityIndicator size='small' />}</View>
       )}
     />
   );
